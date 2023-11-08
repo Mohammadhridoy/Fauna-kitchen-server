@@ -28,12 +28,12 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const foodCollection = client.db('kitchen').collection('addfooditem');
+    const purchaseCollection = client.db('kitchen').collection('purchaseinfo');
 
 
     app.post("/addfood", async(req, res) =>{
       const foodlist = req.body; 
 
-      console.log(foodlist)
       const result = await foodCollection.insertOne(foodlist)
       res.send(result)
     })
@@ -54,8 +54,15 @@ async function run() {
 
     })
 
+    // post purchase date 
+    app.post('/purchase', async(req, res) =>{
+      const purchaseinfo = req.body; 
+      const result = await purchaseCollection.insertOne(purchaseinfo)
+      res.send(result)
 
-  //   // pagination 
+    })
+
+    // pagination 
   //   app.get('/foods', async(req, res) => {
   //     const page = parseInt(req.query.page)
   //     const size = parseInt(req.query.size)
