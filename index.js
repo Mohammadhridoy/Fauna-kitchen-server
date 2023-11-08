@@ -1,5 +1,5 @@
 const express = require('express')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const app = express()
 const port = process.env.PORT || 5000; 
@@ -39,11 +39,38 @@ async function run() {
     })
     
 
-    app.get("/addfood", async(rq, res) =>{
+    app.get("/addfood", async(req, res) =>{
       const foodlist = foodCollection.find()
         const result= await foodlist.toArray()
         res.send(result)
     })
+
+    app.get("/addfood/:id", async(req, res ) =>{
+      const id = req.params.id
+      const query = {_id: new ObjectId(id)}
+
+      const result = await foodCollection.findOne(query)
+      res.send(result)
+
+    })
+
+
+  //   // pagination 
+  //   app.get('/foods', async(req, res) => {
+  //     const page = parseInt(req.query.page)
+  //     const size = parseInt(req.query.size)
+  //     const result = await foodCollection.find()
+      
+  //     .skip(page * size)
+  //     .limit(size)
+  //     .toArray();
+  //     res.send(result);
+  // })
+
+  // app.get('/foodItemsCount', async(req, res) =>{
+  //   const count = await foodCollection.estimatedDocumentCount()
+  //   res.send({count})
+  // })
 
 
 
