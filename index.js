@@ -105,7 +105,7 @@ async function run() {
     })
 
     // post purchase date 
-    app.post('/purchase',logger, verifyToken , async(req, res) =>{
+    app.post('/purchase', async(req, res) =>{
       const purchaseinfo = req.body;
       const {foodname, count } = purchaseinfo
       await foodCollection.updateOne( 
@@ -181,17 +181,6 @@ async function run() {
     
 
 
-    // pagination 
-  //   app.get('/foods', async(req, res) => {
-  //     const page = parseInt(req.query.page)
-  //     const size = parseInt(req.query.size)
-  //     const result = await foodCollection.find()
-      
-  //     .skip(page * size)
-  //     .limit(size)
-  //     .toArray();
-  //     res.send(result);
-  // })
 
   app.get('/foodItemsCount', async(req, res) =>{
     const count = await foodCollection.estimatedDocumentCount()
