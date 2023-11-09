@@ -7,7 +7,7 @@ require('dotenv').config()
 
 // middleware
 app.use(cors({
-  origin:['http://localhost:5173'], 
+  origin:['http://localhost:5173/'], 
   credentials: true
 }))
 app.use(express.json())
@@ -25,6 +25,11 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+// create middleware
+const logger = async( req, res, next) =>{
+  console.log('called:', req.host, req.originalUrl)
+  next(); 
+}
 
 async function run() {
   try {
@@ -34,6 +39,22 @@ async function run() {
     const purchaseCollection = client.db('kitchen').collection('purchaseinfo');
 
     const topOrderCollection = client.db('kitchen').collection('toporder')
+
+
+        //auth related api
+        app.post('/jwt', logger, async(req, res) =>{
+          const user = req.body
+          console.log(user)
+          const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
+    
+          res
+          .cookie('token', token,{
+            httpOnly: true,
+            secure:false,
+            sameSite:'none'
+          })
+          .send({success: true})
+        } )
 
 
     app.post("/addfood", async(req, res) =>{
