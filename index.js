@@ -6,7 +6,10 @@ const port = process.env.PORT || 5000;
 require('dotenv').config()
 
 // middleware
-app.use(cors());
+app.use(cors({
+  origin:['http://localhost:5173'], 
+  credentials: true
+}))
 app.use(express.json())
 
 
@@ -61,6 +64,42 @@ async function run() {
       res.send(result)
 
     })
+
+    // get addfood date using email 
+    app.get('/addfood', async(req,res) =>{
+      console.log(req.query.email)
+      let query = { };
+      if(req.query?.email) {
+        query = {  useremail: req.query.email}
+
+      }
+      const result = await foodCollection.find(query).toArray();
+      res.send(result)
+
+    })
+    // update food items info 
+    app.put('/addfood/:id', async(req, res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const options = { upsert: true }
+      const updatedFoodItem = req.body; 
+      const updateInfo = {
+        $set:{
+          foodname:updatedFoodItem.foodname, 
+          category:updatedFoodItem.category, 
+          quantity:updatedFoodItem.quantity,
+          image:updatedFoodItem.image, 
+          price:updatedFoodItem.price, 
+          description: updatedFoodItem.description, 
+          country:updatedFoodItem.country
+        },
+      };
+      const result = await foodCollection.updateOne(filter, updateInfo, options)
+      res.send(result)
+    })
+
+    
+
 
     // pagination 
   //   app.get('/foods', async(req, res) => {
