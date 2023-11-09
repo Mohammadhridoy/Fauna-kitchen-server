@@ -1,17 +1,19 @@
 const express = require('express')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
+const cookieParser = require('cookie-parser'); 
+const jwt = require('jsonwebtoken');
 const app = express()
 const port = process.env.PORT || 5000; 
 require('dotenv').config()
 
 // middleware
 app.use(cors({
-  origin:['http://localhost:5173/'], 
+  origin:['http://localhost:5173'], 
   credentials: true
 }))
 app.use(express.json())
-
+app.use(cookieParser())
 
 
 
@@ -29,6 +31,22 @@ const client = new MongoClient(uri, {
 const logger = async( req, res, next) =>{
   console.log('called:', req.host, req.originalUrl)
   next(); 
+}
+
+const verifyToken = async( req, res, next) =>{
+  const token = req.cookies?.token;
+  if(!token){
+    return res.status(401).send({message:'not authorized'})
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(err, decoded) =>{
+    if(err){
+      return res.status(401).send({message: 'unauthorized'})
+    }
+    console.log('value in the token', decoded)
+    req.user = decoded;
+    next()
+  } )
+
 }
 
 async function run() {
@@ -66,8 +84,14 @@ async function run() {
     
 
     app.get("/addfood", async(req, res) =>{
-      const foodlist = foodCollection.find()
-        const result= await foodlist.toArray()
+      const page = parseInt(req.query.page)
+      const size = parseInt(req.query.size)
+      const result = await foodCollection.find()
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+      // const foodlist = foodCollection.find()
+      //   const result= await foodlist.toArray()
         res.send(result)
     })
 
@@ -81,7 +105,7 @@ async function run() {
     })
 
     // post purchase date 
-    app.post('/purchase', async(req, res) =>{
+    app.post('/purchase',logger, verifyToken , async(req, res) =>{
       const purchaseinfo = req.body;
       const {foodname, count } = purchaseinfo
       await foodCollection.updateOne( 
@@ -169,10 +193,10 @@ async function run() {
   //     res.send(result);
   // })
 
-  // app.get('/foodItemsCount', async(req, res) =>{
-  //   const count = await foodCollection.estimatedDocumentCount()
-  //   res.send({count})
-  // })
+  app.get('/foodItemsCount', async(req, res) =>{
+    const count = await foodCollection.estimatedDocumentCount()
+    res.send({count})
+  })
 
 
 
