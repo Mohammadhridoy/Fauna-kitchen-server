@@ -33,6 +33,8 @@ async function run() {
     const foodCollection = client.db('kitchen').collection('addfooditem');
     const purchaseCollection = client.db('kitchen').collection('purchaseinfo');
 
+    const topOrderCollection = client.db('kitchen').collection('toporder')
+
 
     app.post("/addfood", async(req, res) =>{
       const foodlist = req.body; 
@@ -59,9 +61,21 @@ async function run() {
 
     // post purchase date 
     app.post('/purchase', async(req, res) =>{
-      const purchaseinfo = req.body; 
+      const purchaseinfo = req.body;
+      const {foodname, count } = purchaseinfo
+      await foodCollection.updateOne( 
+        {foodname},
+        {$inc: {count: 1}}
+    )
       const result = await purchaseCollection.insertOne(purchaseinfo)
       res.send(result)
+
+    })
+
+    app.get('/purchase/:email', async(req, res)=>{
+      const email = req.params.email
+      console.log(email)
+      const query = {email: email}
 
     })
 
@@ -97,6 +111,14 @@ async function run() {
       const result = await foodCollection.updateOne(filter, updateInfo, options)
       res.send(result)
     })
+
+    // get top ordered food api
+    app.get('/addfood', async(req, res)=>{
+      const topFoodItems = await foodCollection.find({}).sort({count:-1}).limit(6).toArray()
+      res.send(topFoodItems)
+    })
+
+
 
     
 
