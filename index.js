@@ -72,10 +72,16 @@ async function run() {
 
     })
 
-    app.get('/purchase/:email', async(req, res)=>{
-      const email = req.params.email
-      console.log(email)
-      const query = {email: email}
+    app.get('/purchases', async(req, res)=>{
+      console.log(req.query.email)
+      let query = {}
+      if(req.query?.email){
+         query = {userEmail: req.query.email}
+      }
+      
+
+      const result = await purchaseCollection.find(query).toArray( )
+      res.send(result)
 
     })
 
@@ -113,7 +119,7 @@ async function run() {
     })
 
     // get top ordered food api
-    app.get('/addfood', async(req, res)=>{
+    app.get('/addfoods', async(req, res)=>{
       const topFoodItems = await foodCollection.find({}).sort({count:-1}).limit(6).toArray()
       res.send(topFoodItems)
     })
